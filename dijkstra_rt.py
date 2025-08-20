@@ -11,14 +11,17 @@ def load_topology(path: str) -> Dict[str, Dict[str, float]]:
     graph: Dict[str, Dict[str, float]] = {}
     for u, neigh in cfg.items():
         if isinstance(neigh, dict):
-            # ya trae pesos
+            # Ya trae pesos
             graph[u] = {v: float(w) for v, w in neigh.items()}
         else:
-            # lista simple: asignar peso 1
+            # Lista simple: asignar peso 1
             graph[u] = {v: 1.0 for v in neigh}
+    
     # Asegurar nodos aislados aparezcan
     for u in list(cfg.keys()):
         graph.setdefault(u, {})
+
+    print(f"Topología cargada: {graph}")  # Depuración para verificar la topología
     return graph
 
 # Dijkstra clásico con heap
@@ -39,6 +42,9 @@ def dijkstra(graph: Dict[str, Dict[str, float]], source: str) -> Tuple[Dict[str,
                 dist[v] = nd
                 prev[v] = u
                 heapq.heappush(pq, (nd, v))
+
+    print(f"Distancias desde {source}: {dist}")  # Depuración para verificar distancias
+    print(f"Previos: {prev}")  # Depuración para verificar los nodos previos
     return dist, prev
 
 # Reconstrucción de ruta y cálculo de next-hop
@@ -49,6 +55,7 @@ def rebuild_path(prev: Dict[str, Optional[str]], source: str, target: str) -> Li
         path.append(cur)
         cur = prev[cur]
     path.reverse()
+    print(f"Ruta reconstruida de {source} a {target}: {path}")  # Depuración de la ruta reconstruida
     if not path or path[0] != source:
         return []  # sin ruta
     return path
@@ -74,6 +81,7 @@ def routing_table_for(graph: Dict[str, Dict[str, float]], source: str) -> List[D
             "next_hop": nh,
             "ruta": "→".join(path) if path else "∅"
         })
+    print(f"Tabla de enrutamiento calculada: {rows}")  # Depuración para verificar la tabla de enrutamiento
     return rows
 
 if __name__ == "__main__":

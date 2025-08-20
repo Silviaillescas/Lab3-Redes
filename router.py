@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Optional
 
 # Variables globales para la dirección y puerto del router
 HOST = '127.0.0.1'  # Dirección IP del router
-PORT = 12345         # Puerto de escucha
+PORT = 1235         # Puerto de escucha
 
 # Carga de topología (como en tu código anterior)
 def load_topology(path: str) -> Dict[str, Dict[str, float]]:
@@ -43,7 +43,6 @@ def dijkstra(graph: Dict[str, Dict[str, float]], source: str) -> Tuple[Dict[str,
                 heapq.heappush(pq, (nd, v))
     return dist, prev
 
-# Manejo de forwarding
 def forward_packet(destination: str, graph: Dict[str, Dict[str, float]], source: str) -> str:
     dist, prev = dijkstra(graph, source)
     path = []
@@ -53,24 +52,36 @@ def forward_packet(destination: str, graph: Dict[str, Dict[str, float]], source:
         cur = prev[cur]
     path.reverse()
 
+    # Mostrar la ruta calculada por Dijkstra
+    print(f"Ruta calculada por Dijkstra desde {source} a {destination}: {path}")
+
+    # Calcular el costo total
+    total_cost = dist[destination] if dist[destination] != float("inf") else None
+
     # El primer nodo después del origen es el siguiente salto
     next_hop = path[1] if len(path) > 1 else None
-    return next_hop
+
+    # Devolver la información completa
+    return next_hop, path, total_cost
+
 
 # Función para manejo de conexiones y forwarding de paquetes
 def handle_client(client_socket: socket.socket, graph: Dict[str, Dict[str, float]], source: str) -> None:
-    data = client_socket.recv(1024).decode('utf-8')  # Recibe el paquete (por ejemplo, la dirección de destino)
+    data = client_socket.recv(1024).decode('utf-8')  # Recibe el destino (ej. "D")
     print(f"Paquete recibido para el destino: {data}")
     
     # Procesar el paquete
-    next_hop = forward_packet(data, graph, source)
+    next_hop, path, total_cost = forward_packet(data, graph, source)
 
-    # Enviar al siguiente salto (si existe)
+    # Verificar si hay un siguiente salto y responder con la ruta completa
     if next_hop:
-        client_socket.send(f"Paquete reenviado a {next_hop}".encode('utf-8'))
+        # Convertir la ruta en una cadena con '→' y el costo total en texto
+        response = (f"Paquete reenviado a {next_hop}, Ruta: {' → '.join(path)}, Costo total: {total_cost}")
     else:
-        client_socket.send("No hay ruta al destino".encode('utf-8'))
+        response = "No hay ruta al destino"
     
+    print(f"Respuesta del router: {response}")  # Para depuración
+    client_socket.send(response.encode('utf-8'))
     client_socket.close()
 
 # Servidor principal del router
