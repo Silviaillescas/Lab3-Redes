@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple, Optional
 HOST = '127.0.0.1'  # Dirección IP del router
 PORT = 1235         # Puerto de escucha
 
-# Carga de topología (como en tu código anterior)
+# Carga de topología 
 def load_topology(path: str) -> Dict[str, Dict[str, float]]:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -67,7 +67,7 @@ def forward_packet(destination: str, graph: Dict[str, Dict[str, float]], source:
 
 # Función para manejo de conexiones y forwarding de paquetes
 def handle_client(client_socket: socket.socket, graph: Dict[str, Dict[str, float]], source: str) -> None:
-    data = client_socket.recv(1024).decode('utf-8')  # Recibe el destino (ej. "D")
+    data = client_socket.recv(1024).decode('utf-8')  # Recibe el destino 
     print(f"Paquete recibido para el destino: {data}")
     
     # Procesar el paquete

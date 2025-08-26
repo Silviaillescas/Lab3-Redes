@@ -3,7 +3,7 @@ import sys
 import heapq
 from typing import Dict, List, Tuple, Optional, Any
 
-# Lectura de topología (formato del anexo del lab)
+# Lectura de topología
 def load_topology(path: str) -> Dict[str, Dict[str, float]]:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
