@@ -3,6 +3,9 @@ Silvia Illescas, Alex Cuxe y Michelle Mejia
 
 Este proyecto implementa un sistema de **enrutamiento** y **forwarding** utilizando tres algoritmos principales de enrutamiento: **Dijkstra**, **Flooding** y **Link State Routing**. El sistema emplea **sockets** y **hilos** para gestionar la **comunicación entre routers** y el **reenviar de paquetes** de manera eficiente.
 
+## Informe 
+https://uvggt-my.sharepoint.com/:w:/g/personal/mej22596_uvg_edu_gt/ESmpCkpNvwVIn65AXcImPR8B6nwJgvSydDT6mOmTlbl0dQ?e=djfn7E
+
 ## Descripción
 
 Este proyecto tiene como objetivo implementar tres algoritmos de enrutamiento: **Dijkstra**, **Flooding** y **Link State Routing**, para calcular las rutas más cortas y reenviar paquetes dentro de una red de **routers**. El sistema utiliza **sockets** para la comunicación entre routers y **hilos** para manejar múltiples conexiones de manera concurrente.
