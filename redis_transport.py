@@ -8,6 +8,13 @@ import threading
 from typing import Callable, Dict, Any, Optional
 
 try:
+    from dotenv import load_dotenv
+    load_dotenv()  # Load .env file automatically
+except ImportError:
+    # dotenv not available, continue with system env vars
+    pass
+
+try:
     import redis  # pip install redis
 except ImportError as e:
     raise RuntimeError("Falta la librería 'redis'. Instala con: pip install redis") from e
@@ -20,9 +27,9 @@ def _env(name: str, default: Optional[str] = None) -> str:
     return val
 
 
-REDIS_HOST = _env("REDIS_HOST", "")
-REDIS_PORT = int(_env("REDIS_PORT", ""))
-REDIS_PWD  = os.getenv("REDIS_PWD", "") 
+REDIS_HOST = _env("REDIS_HOST", "lab3.redesuvg.cloud")
+REDIS_PORT = int(_env("REDIS_PORT", "6379"))
+REDIS_PWD  = os.getenv("REDIS_PWD", "UVGRedis2025") 
 
 
 class RedisTransport:

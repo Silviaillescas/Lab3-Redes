@@ -9,9 +9,9 @@ Router de Link State Routing (LSR) usando Redis Pub/Sub como red.
 Requisitos:
     pip install redis
 Variables de entorno:
-    export REDIS_HOST="..."
+    export REDIS_HOST="... "
     export REDIS_PORT="6379"
-    export REDIS_PWD="..."
+    export REDIS_PWD="... "
 Ejecución (ejemplo):
     python router_lsr_redis.py topo.json A
 """
@@ -47,6 +47,7 @@ class LinkStateRouterRedis:
         self.lsdb: Dict[str, Dict[str, Any]] = {}
         self.sequence_number = 0
         self.seen_lsp_ids: Set[str] = set()
+        self.routing_table: List[Dict[str, Any]] = []
 
         # transporte Redis (callback en _on_packet)
         self.transport = RedisTransport(self.channel_local, self._on_packet)
@@ -134,8 +135,9 @@ class LinkStateRouterRedis:
     def _forward_packet(self, packet: Dict[str, Any], next_hop: str) -> None:
         """Reenvía un paquete a su siguiente salto usando la tabla de ruteo"""
         packet["hops"] -= 1  # Decrementa hops antes de reenviar
-        self.transport.publish(next_hop, packet)
-        print(f"[{self.node_id}] Paquete reenviado a {next_hop}")
+        next_hop_channel = get_channel(next_hop)
+        self.transport.publish(next_hop_channel, packet)
+        print(f"[{self.node_id}] Paquete reenviado a {next_hop} via {next_hop_channel}")
 
     # ======== Cálculo de tabla de ruteo ========
 
@@ -158,6 +160,10 @@ class LinkStateRouterRedis:
 
     def _get_next_hop(self, destination: str) -> str:
         """Obtiene el siguiente salto de la tabla de ruteo"""
+        if not hasattr(self, 'routing_table') or not self.routing_table:
+            print(f"[{self.node_id}] Tabla de ruteo vacía, no se puede enrutar a {destination}")
+            return ""
+            
         for entry in self.routing_table:
             if entry["destino"] == destination:
                 return entry["next_hop"]
@@ -167,9 +173,22 @@ class LinkStateRouterRedis:
 
     def send(self, dst_node: str, payload: str, hops: int = 8) -> None:
         """Envía un mensaje a través de LSR"""
-        pkt = make_packet("message", self.channel_local, get_channel(dst_node), hops=hops, payload=payload)
-        self._flood_lsp(pkt)  # Inundar a los vecinos para reenviar
-        print(f"[{self.node_id}] Mensaje enviado a {dst_node} con payload: {payload}")
+        pkt = make_packet("message", self.node_id, dst_node, hops=hops, payload=payload)
+        
+        # Si el destino es un vecino directo, enviar directamente
+        if dst_node in self.neighbors:
+            dst_channel = get_channel(dst_node)
+            self.transport.publish(dst_channel, pkt)
+            print(f"[{self.node_id}] Mensaje enviado directamente a vecino {dst_node}")
+        else:
+            # Usar la tabla de ruteo para encontrar el siguiente salto
+            next_hop = self._get_next_hop(dst_node)
+            if next_hop:
+                next_hop_channel = get_channel(next_hop)
+                self.transport.publish(next_hop_channel, pkt)
+                print(f"[{self.node_id}] Mensaje enviado a {dst_node} via {next_hop}")
+            else:
+                print(f"[{self.node_id}] No hay ruta para {dst_node}")
 
 
 def main():
